@@ -1,2 +1,17 @@
-# Google App Engine generated folder
-appengine-generated/
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files (if you ever add a backend)
+.env
+.env.local
+
+# Node (if you ever add npm tools)
+node_modules/
