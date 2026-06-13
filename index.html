@@ -21,12 +21,27 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--dark);colo
 .screen{display:none;padding-bottom:80px;}
 .screen.active{display:block;}
 
-.hero-bg{background:var(--dark2);padding:2rem 1.25rem 1.5rem;border-bottom:1px solid rgba(108,59,255,0.2);}
+.hero-bg{background:linear-gradient(180deg,rgba(18,11,44,0.98),rgba(20,13,46,0.95));padding:2rem 1.25rem 1.5rem;border-bottom:1px solid rgba(108,59,255,0.2);}
 .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
-.logo-dot{width:38px;height:38px;background:var(--p);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.logo-dot{width:38px;height:38px;background:var(--p);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 10px 30px rgba(108,59,255,0.2);}
 .logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--txt);}
 .logo-text span{color:var(--p2);}
 .hero-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1.2;margin-bottom:8px;}
+.auth-card{background:rgba(16,10,38,0.9);border:1px solid rgba(108,59,255,0.18);box-shadow:0 35px 80px rgba(0,0,0,0.28);border-radius:28px;margin:-48px 1.25rem 0;overflow:hidden;position:relative;}
+.auth-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(108,59,255,0.18),transparent 30%),radial-gradient(circle at bottom left,rgba(16,185,129,0.12),transparent 18%);pointer-events:none;}
+.form-toggle{display:flex;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(108,59,255,0.12);border-radius:999px;padding:4px;margin-bottom:16px;position:relative;z-index:1;}
+.form-toggle button{flex:1;border:none;background:transparent;color:var(--txt2);padding:12px 0;border-radius:999px;cursor:pointer;font-weight:700;transition:all .2s;}
+.form-toggle button.active{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;box-shadow:0 12px 28px rgba(108,59,255,0.24);}
+.social-row{display:grid;gap:10px;margin-bottom:14px;}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;border:none;border-radius:999px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .2s,filter .2s;}
+.social-btn:hover{transform:translateY(-1px);filter:brightness(1.05);}
+.social-btn.google{background:#fff;color:#202124;border:1px solid rgba(0,0,0,0.08);}
+.social-btn.fb{background:#1877f2;color:#fff;}
+.social-btn.xbtn{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,0.12);}
+.or-divider{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin:12px 0;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(108,59,255,0.15);}
+.form-section{padding:0 1.25rem 1.5rem;position:relative;}
+.err,.success-toast{opacity:1;transition:opacity .2s;}
 .hero-sub{font-size:13px;color:var(--txt2);line-height:1.5;}
 .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(108,59,255,0.15);color:var(--p2);border:1px solid rgba(108,59,255,0.3);}
@@ -143,7 +158,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--dark);colo
 <body>
 <div class="app">
 
-  <!-- LOGIN SCREEN -->
+  <!-- LOGIN / REGISTER SCREEN -->
   <div class="screen active" id="s-login">
     <div class="hero-bg">
       <div class="logo-row">
@@ -158,21 +173,48 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--dark);colo
         <div class="pill">&#128683; Brute-force proof</div>
       </div>
     </div>
-    <div class="form-section">
-      <div class="lock-warn" id="lock-warn">&#128274; Account locked after 5 failed attempts.</div>
-      <div class="field"><label>Your name</label><input type="text" id="l-name" placeholder="e.g. Simon Victor" maxlength="30"/></div>
-      <div class="field"><label>Family code</label><input type="password" id="l-pass" placeholder="Enter family code" maxlength="30" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <div id="attempt-bar" style="margin-bottom:12px;display:none;">
-        <div style="font-size:11px;color:#fca5a5;margin-bottom:4px;">Failed attempts: <span id="att-count">0</span>/5</div>
-        <div style="height:4px;background:var(--dark3);border-radius:2px;"><div id="att-fill" style="height:100%;background:#ef4444;border-radius:2px;width:0%;transition:width 0.3s;"></div></div>
+    <div class="auth-card">
+      <div class="form-toggle">
+        <button class="tab active" id="auth-login-btn" onclick="switchAuth('login')">Sign in</button>
+        <button class="tab" id="auth-register-btn" onclick="switchAuth('register')">Register</button>
       </div>
-      <div class="consent-block">
-        <input type="checkbox" id="l-consent"/>
-        <span>I consent to share my real-time location with my family group only. I can revoke this at any time.</span>
+      <div class="social-row">
+        <button class="btn social-btn google" onclick="socialAuth('Google')">&#128640; Continue with Google</button>
+        <button class="btn social-btn fb" onclick="socialAuth('Facebook')">&#128100; Continue with Facebook</button>
+        <button class="btn social-btn xbtn" onclick="socialAuth('X')">&#10060; Continue with X</button>
       </div>
-      <button class="btn btn-primary" onclick="doLogin()">Sign in securely &#8594;</button>
-      <div class="err" id="l-err"></div>
-      <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--txt3);">Default code: <span style="color:var(--p2);font-family:'Syne',sans-serif;">family123</span></div>
+      <div class="or-divider"><span>or use family code</span></div>
+      <div class="form-section">
+        <div id="login-form">
+          <div class="lock-warn" id="lock-warn">&#128274; Account locked after 5 failed attempts.</div>
+          <div class="field"><label>Your name or email</label><input type="text" id="l-name" placeholder="e.g. Simon Victor or simon@home.com" maxlength="50"/></div>
+          <div class="field"><label>Family code</label><input type="password" id="l-pass" placeholder="Enter family code" maxlength="30" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+          <div id="attempt-bar" style="margin-bottom:12px;display:none;">
+            <div style="font-size:11px;color:#fca5a5;margin-bottom:4px;">Failed attempts: <span id="att-count">0</span>/5</div>
+            <div style="height:4px;background:var(--dark3);border-radius:2px;"><div id="att-fill" style="height:100%;background:#ef4444;border-radius:2px;width:0%;transition:width 0.3s;"></div></div>
+          </div>
+          <div class="consent-block">
+            <input type="checkbox" id="l-consent"/>
+            <span>I consent to share my real-time location with my family group only. I can revoke this at any time.</span>
+          </div>
+          <button class="btn btn-primary" onclick="doLogin()">Sign in securely &#8594;</button>
+          <div class="err" id="l-err"></div>
+          <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--txt3);">Demo family code: <span style="color:var(--p2);font-family:'Syne',sans-serif;">family123</span></div>
+        </div>
+        <div id="register-form" style="display:none;">
+          <div class="field"><label>Full name</label><input type="text" id="r-name" placeholder="Your full name" maxlength="50"/></div>
+          <div class="field"><label>Email address</label><input type="email" id="r-email" placeholder="you@familytrack.com"/></div>
+          <div class="field"><label>Choose a family code</label><input type="password" id="r-pass" placeholder="Minimum 6 characters" maxlength="30"/></div>
+          <div class="field"><label>Confirm code</label><input type="password" id="r-confirm" placeholder="Repeat family code" maxlength="30" onkeydown="if(event.key==='Enter')doRegister()"/></div>
+          <div class="consent-block">
+            <input type="checkbox" id="r-consent"/>
+            <span>I agree to share location updates with trusted family members and receive safety alerts.</span>
+          </div>
+          <button class="btn btn-primary" onclick="doRegister()">Create account</button>
+          <div class="err" id="r-err"></div>
+          <div class="success-toast" id="r-ok">&#10003; Account created! You can now sign in.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -338,9 +380,9 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--dark);colo
 </div>
 
 <script>
-let user=null,fails=0,locked=false,tracking=false,tInterval=null,sTimer=null,sRemain=1800;
+let user=null,fails=0,locked=false,tracking=false,tInterval=null,sTimer=null,sRemain=1800,authMode='login';
 let locHistory=[],auditLog=[];
-let code='family123';
+let accounts=[{name:'Simon Victor',email:'simon@familytrack.com',code:'family123'}];
 let zones=[
   {name:'Home',radius:'100m',on:true},
   {name:'School',radius:'200m',on:true},
@@ -360,26 +402,73 @@ let alerts=[
 function h(s){let v=0;for(let i=0;i<s.length;i++){v=((v<<5)-v)+s.charCodeAt(i);v|=0;}return v;}
 function g(id){return document.getElementById(id);}
 function showErr(id,msg){const e=g(id);e.style.display='block';e.textContent=msg;}
+function hideErr(id){const e=g(id);e.style.display='none';}
+function switchAuth(mode){authMode=mode;
+  const loginBtn=g('auth-login-btn'), registerBtn=g('auth-register-btn');
+  const loginForm=g('login-form'), registerForm=g('register-form');
+  if(mode==='register'){
+    loginBtn.classList.remove('active'); registerBtn.classList.add('active');
+    loginForm.style.display='none'; registerForm.style.display='block';
+  } else {
+    loginBtn.classList.add('active'); registerBtn.classList.remove('active');
+    loginForm.style.display='block'; registerForm.style.display='none';
+  }
+  ['l-err','r-err'].forEach(id=>hideErr(id));
+  g('r-ok').style.display='none';
+}
+function socialAuth(provider){
+  const email = provider.toLowerCase()+'-user@familytrack.app';
+  let account = accounts.find(a=>a.email===email);
+  if(!account){
+    account={name:provider+' Family User',email,code:'social-'+provider.toLowerCase()};
+    accounts.push(account);
+  }
+  user=account.name; fails=0; locked=false;
+  g('t-name').textContent='Hi, '+user.split(' ')[0]+'!';
+  logAudit('Social login','Signed in with '+provider);
+  showScreen('s-dash'); renderAll(); startSession(); getBattery();
+}
+function doRegister(){
+  const name=g('r-name').value.trim();
+  const email=g('r-email').value.trim().toLowerCase();
+  const pass=g('r-pass').value;
+  const confirm=g('r-confirm').value;
+  const consent=g('r-consent').checked;
+  hideErr('r-err');
+  if(!name)return showErr('r-err','Please enter your full name.');
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return showErr('r-err','Please enter a valid email address.');
+  if(accounts.some(a=>a.email===email))return showErr('r-err','This email is already registered.');
+  if(pass.length<6)return showErr('r-err','Family code must be at least 6 characters.');
+  if(pass!==confirm)return showErr('r-err','Codes do not match.');
+  if(!consent)return showErr('r-err','You must agree to location sharing terms.');
+  accounts.push({name,email,code:pass});
+  g('r-name').value=''; g('r-email').value=''; g('r-pass').value=''; g('r-confirm').value=''; g('r-consent').checked=false;
+  g('r-ok').style.display='block';
+  logAudit('Registration','New account created for '+name);
+  setTimeout(()=>{if(g('r-ok'))g('r-ok').style.display='none';},3000);
+}
 
 function doLogin(){
   if(locked){g('lock-warn').style.display='block';return;}
-  const n=g('l-name').value.trim(),p=g('l-pass').value,c=g('l-consent').checked;
-  if(!n)return showErr('l-err','Please enter your name.');
-  if(!p)return showErr('l-err','Please enter the family code.');
+  const identity=g('l-name').value.trim(),pass=g('l-pass').value,c=g('l-consent').checked;
+  hideErr('l-err');
+  if(!identity)return showErr('l-err','Please enter your name or email.');
+  if(!pass)return showErr('l-err','Please enter the family code.');
   if(!c)return showErr('l-err','You must consent to location sharing.');
-  if(h(p)!==h(code)){
+  const account=accounts.find(a=>a.email===identity.toLowerCase()||a.name.toLowerCase()===identity.toLowerCase());
+  if(!account||account.code!==pass){
     fails++;
     g('attempt-bar').style.display='block';
     g('att-count').textContent=fails;
     g('att-fill').style.width=(fails/5*100)+'%';
     if(fails>=5){locked=true;g('lock-warn').style.display='block';}
-    return showErr('l-err',fails>=5?'Account locked after 5 failed attempts.':`Wrong code. ${5-fails} attempt(s) remaining.`);
+    return showErr('l-err',fails>=5?'Account locked after 5 failed attempts.':`Invalid credentials. ${5-fails} attempt(s) remaining.`);
   }
-  user=n;fails=0;g('l-err').style.display='none';
-  logAudit('Login','Successful login: '+n);
-  g('t-name').textContent='Hi, '+n.split(' ')[0]+'!';
+  user=account.name; fails=0; locked=false; g('l-err').style.display='none';
+  logAudit('Login','Successful login: '+user);
+  g('t-name').textContent='Hi, '+user.split(' ')[0]+'!';
   showScreen('s-dash');
-  renderAll();startSession();getBattery();
+  renderAll(); startSession(); getBattery();
 }
 
 function doLogout(){
@@ -387,6 +476,7 @@ function doLogout(){
   logAudit('Logout','Session ended by '+user);
   user=null;
   g('l-name').value='';g('l-pass').value='';g('l-consent').checked=false;
+  g('r-name')?.value=''; g('r-email')?.value=''; g('r-pass')?.value=''; g('r-confirm')?.value=''; g('r-consent')?.checked=false;
   g('attempt-bar').style.display='none';g('lock-warn').style.display='none';
   showScreen('s-login');
 }
@@ -489,9 +579,14 @@ function changeCode(){
   const n=g('np').value,c=g('cp').value;
   const err=g('cp-err'),ok=g('cp-ok');
   err.style.display='none';ok.style.display='none';
+  if(!user)return showErr('cp-err','Please sign in first.');
   if(n.length<6)return showErr('cp-err','Code must be at least 6 characters.');
   if(n!==c)return showErr('cp-err','Codes do not match.');
-  code=n;g('np').value='';g('cp').value='';
+  const account = accounts.find(a=>a.name===user);
+  if(account){
+    account.code = n;
+  }
+  g('np').value='';g('cp').value='';
   ok.style.display='block';
   logAudit('Security','Family code changed by '+user);
   setTimeout(()=>ok.style.display='none',3000);
