@@ -1,0 +1,23 @@
+{
+  "name": "familytrack-pro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.js",
+    "test:api": "node tests/api-smoke.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "leaflet": "1.9.4"
+  },
+  "devDependencies": {
+    "vite": "8.3.4"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

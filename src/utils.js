@@ -1,0 +1,5 @@
+export const escapeHTML = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function locationIsFresh(location, now=Date.now()) { return Boolean(location && now-new Date(location.updated_at).getTime()<120000 && now>=new Date(location.updated_at).getTime()); }
+export function age(value) { if(!value) return 'Not shared'; const seconds=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/1000)); return seconds<60?'Just now':seconds<3600?`${Math.floor(seconds/60)} min ago`:seconds<86400?`${Math.floor(seconds/3600)} hr ago`:new Date(value).toLocaleDateString(); }
+export function parseInvite(hash) { const p=new URLSearchParams(hash.replace(/^#/,'')); const t=p.get('invite'); return t && /^[a-f0-9]{64}$/.test(t)?t:null; }
+export function validPosition(coords) { return Number.isFinite(coords.latitude)&&Math.abs(coords.latitude)<=90&&Number.isFinite(coords.longitude)&&Math.abs(coords.longitude)<=180&&Number.isFinite(coords.accuracy)&&coords.accuracy>=0; }

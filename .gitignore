@@ -15,3 +15,8 @@ Thumbs.db
 
 # Node (if you ever add npm tools)
 node_modules/
+
+# Build outputs and local hosting state
+dist/
+.openai/*.tar.gz
+.openai/*.local.*
