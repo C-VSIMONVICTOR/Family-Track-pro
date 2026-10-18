@@ -59,3 +59,9 @@ History reads are limited to the last 24 hours; at most 200 records per user are
 - Full interactive browser and two-device tests still need to be completed. No browser QA capability was available in the build environment.
 
 License: MIT.
+
+## Family chat and Android
+
+Family chat is available from the Chat tab on web and Android. The latest 100 messages are fetched with current family authorization every four seconds while the chat is open. Messages support deletion, reporting and per-person hiding. Reports require an operator to review the backend queue. Chat is not end-to-end encrypted and no chat push delivery is configured.
+
+Android sources are in `android/`; `capacitor.config.json` uses bundled web assets, rather than loading the private hosted Site. Only foreground location permissions are requested. See [Android, Google Play and client acquisition plan](docs/ANDROID-AND-LAUNCH.md) for build commands, release requirements, limitations and a four-week growth pilot.

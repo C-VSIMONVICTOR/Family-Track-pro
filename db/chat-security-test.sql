@@ -1,0 +1,41 @@
+begin;
+insert into auth.users(id,email) values ('20000000-0000-4000-8000-000000000001','chat-owner@familytrack.test'),('20000000-0000-4000-8000-000000000002','chat-member@familytrack.test'),('20000000-0000-4000-8000-000000000003','chat-outsider@familytrack.test');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
+do $$ declare f uuid; token text; mid uuid; begin
+ f:=(public.family_command('create_family','{"name":"Chat Test","display_name":"Owner"}')->>'family_id')::uuid;
+ perform set_config('test.chat_family',f::text,true);
+ token:=public.family_command('create_invite',jsonb_build_object('family_id',f))->>'token';perform set_config('test.chat_token',token,true);
+ insert into public.chat_messages(family_id,sender_id,body) values(f,auth.uid(),'Hello family') returning id into mid;
+ perform set_config('test.chat_message',mid::text,true);
+end $$;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',true);
+do $$ declare blocked boolean:=false; begin
+ if exists(select 1 from public.chat_messages) then raise exception 'Outsider can read chat'; end if;
+ begin insert into public.chat_messages(family_id,sender_id,body) values(current_setting('test.chat_family')::uuid,auth.uid(),'Intruder'); exception when others then blocked:=true; end;
+ if not blocked then raise exception 'Outsider can send chat'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
+do $$ declare f uuid:=current_setting('test.chat_family')::uuid; blocked boolean:=false; n integer; begin
+ perform public.family_command('join_family',jsonb_build_object('token',current_setting('test.chat_token'),'display_name','Member'));
+ if (select count(*) from public.chat_messages)<>1 then raise exception 'Member cannot read chat'; end if;
+ begin insert into public.chat_messages(family_id,sender_id,body) values(f,'20000000-0000-4000-8000-000000000001','Spoof'); exception when others then blocked:=true; end;
+ if not blocked then raise exception 'Can spoof sender'; end if;
+ delete from public.chat_messages where id=current_setting('test.chat_message')::uuid;get diagnostics n=row_count;
+ if n<>0 then raise exception 'Can delete someone else message'; end if;
+ insert into public.chat_reports(family_id,reporter_id,message_id,reason) values(f,auth.uid(),current_setting('test.chat_message')::uuid,'spam');
+ insert into public.chat_blocks(family_id,blocker_id,blocked_id) values(f,auth.uid(),'20000000-0000-4000-8000-000000000001');
+ if exists(select 1 from public.chat_messages) then raise exception 'Blocked messages still visible'; end if;
+ delete from public.chat_blocks where family_id=f and blocker_id=auth.uid();
+ if (select count(*) from public.chat_messages)<>1 then raise exception 'Unhide failed'; end if;
+ insert into public.chat_messages(family_id,sender_id,body) values(f,auth.uid(),'Hello back');
+ blocked:=false;begin insert into public.chat_messages(family_id,sender_id,body) values(f,auth.uid(),'Too fast');exception when others then blocked:=true;end;
+ if not blocked then raise exception 'Message rate limit failed';end if;
+end $$;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
+select public.family_command('remove_member',jsonb_build_object('family_id',current_setting('test.chat_family'),'user_id','20000000-0000-4000-8000-000000000002'));
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
+do $$ begin if exists(select 1 from public.chat_messages) then raise exception 'Removed member retains chat access';end if;end $$;
+reset role;
+rollback;
+select 'PASS: chat isolation, sender identity, deletion permissions, reports, hiding, rate limit and revoked access' as result;

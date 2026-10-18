@@ -8,13 +8,20 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
-    "test:api": "node tests/api-smoke.js"
+    "test:api": "node tests/api-smoke.js",
+    "android:sync": "npm run build && cap sync android",
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:open": "cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/geolocation": "8.2.4",
     "@supabase/supabase-js": "2.118.0",
     "leaflet": "1.9.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.5.3",
     "vite": "8.3.4"
   },
   "engines": {
