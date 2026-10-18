@@ -1,47 +1,61 @@
 # FamilyTrack Pro
 
-A secure, mobile-friendly family location sharing app built with vanilla HTML, CSS, and JavaScript.
+Family circles with individual accounts, opt-in foreground location sharing, a live map, safe-zone events, check-ins and in-app SOS acknowledgements. This replaces the original browser-only demonstration.
 
-## Features
+## Current release status
 
-- Real-time GPS location sharing with consent enforcement
-- SOS emergency alerts to all family members
-- Safe zones with enter/exit notifications
-- Location history log (last 30 entries)
-- Battery level monitoring
-- Brute-force login protection (locks after 5 attempts)
-- Auto session timeout (30 minutes)
-- Full audit log of all actions
-- Change family code anytime
-- 100% client-side — no server, no database, no data collection
+The connected Supabase backend is provisioned and the family access model has passed transactional security tests. The application builds successfully. **Public launch is pending email delivery, Auth URL configuration and two-device browser acceptance testing.** It is not an emergency response service.
 
-## How to use
+Review deployment: https://familytrack-pro.coolbrush513.chatgpt.site (owner-private).
+Supabase project: `wjiyyqhqulsthwvcxkkl`, EU West.
 
-1. Open `index.html` in any browser
-2. Enter your name and the family code
-3. Consent to location sharing
-4. Start sharing your location with family
+## Run
 
-## Default login
+Requires Node 22.12+.
 
-- Family code: `family123`
-- Change it in the **Security** tab after logging in
+```sh
+npm ci
+npm run dev
+npm test
+npm run build
+```
 
-## Deployment
+The publishable key in `src/config.js` is intentionally public. Do not place a service-role key or SMTP password in client code. Apply `db/schema.sql` only to a new project, or use the already provisioned project. Do not reapply the baseline to the connected project.
 
-Works on any static hosting platform:
-- Netlify (drag and drop)
-- GitHub Pages
-- Vercel
-- Tiiny.host
+## Implemented
 
-## Privacy
+- Email/password sign-up, confirmation, login, password reset and password change through Supabase Auth.
+- Create up to five family groups per user; up to 20 members per family.
+- Owner-created, random 256-bit, single-use invitations expiring after 24 hours. Tokens are stored as hashes.
+- All family members use individual accounts. Every member controls their own sharing.
+- Leaflet/OpenStreetMap map. Foreground location writes are throttled to one per ten seconds per browser; backend enforces a five-second minimum.
+- Family location snapshots poll every ten seconds with current database authorization. Markers hide after two minutes without a fresh reading.
+- Stopping sharing deletes the latest shared location. Leaving/removal deletes membership-linked location data.
+- Owner-managed safe zones. Server computes distance and creates crossing events, with accuracy checks and a 25m boundary hysteresis. First fix establishes a baseline.
+- Persistent in-app SOS, check-ins, family event updates via Realtime and polling, and explicit SOS acknowledgements.
+- Private personal history, clear-history controls, family deletion and account deletion.
+- Responsive desktop/mobile interface and installable web app manifest. No sensitive API caching or offline queue.
 
-All data stays on your device. Nothing is sent to any server.
+## Important behavior
 
-## Tech stack
+This web app cannot promise background tracking: mobile operating systems may suspend browsers. Location sharing needs HTTPS, explicit browser permission, connectivity and the app open. Multiple tabs/devices on the same account should be avoided; sharing is controlled per user/family, not per device.
 
-- HTML5 Geolocation API
-- Battery Status API
-- Vanilla JavaScript
-- Google Fonts (Syne + Inter)
+SOS means a database event visible to signed-in current family members. It does not send SMS, email, background push or contact emergency services. An acknowledgement is an explicit member action, not a delivery receipt. If a send fails, the UI reports an error and does not claim success.
+
+The app does not claim end-to-end encryption. HTTPS protects transport; the database provider and authorized operators can access stored data. OpenStreetMap receives IP addresses and tile requests; Google Fonts is used for typography. Review `DEPLOYMENT.md` before allowing customers to sign up.
+
+## Retention
+
+History reads are limited to the last 24 hours; at most 200 records per user are retained during location publishing. Old records are physically pruned on the next location write. Latest locations are unreadable through the API after five minutes and hidden on the map after two minutes. User-initiated deletion works immediately.
+
+`db/proposed-retention.sql` is **not applied**. Automatic review rejected the proposed periodic deletion without specific user approval. It proposes five-minute cleanup of history older than 24 hours, locations older than five minutes, expired/used invitations, and events older than 30 days. No periodic cleanup currently runs.
+
+## Verification
+
+- `npm test`: XSS escaping, coordinate validation, invitation parsing and stale-location behavior.
+- `db/security-test.sql`: rollback-only backend checks for cross-family isolation, invite single-use, owner permissions, consent, location spoofing prevention, private history, SOS persistence and revoked membership.
+- `node tests/api-smoke.js`: live unauthenticated API denial and Auth reachability; needs network access.
+- Supabase security advisors: no findings at implementation time.
+- Full interactive browser and two-device tests still need to be completed. No browser QA capability was available in the build environment.
+
+License: MIT.

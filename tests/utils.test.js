@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {escapeHTML,locationIsFresh,parseInvite,validPosition} from '../src/utils.js';
+test('member names and event messages cannot inject markup',()=>{assert.equal(escapeHTML('<img src=x onerror="alert(1)">'), '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');assert.equal(escapeHTML("Mom's & Dad's"),'Mom&#39;s &amp; Dad&#39;s');});
+test('old, invalid and future locations never appear as recent',()=>{const now=Date.now();assert.equal(locationIsFresh({updated_at:new Date(now-119000).toISOString()},now),true);for(const value of [new Date(now-120000).toISOString(),new Date(now+1000).toISOString(),'invalid'])assert.equal(locationIsFresh({updated_at:value},now),false);assert.equal(locationIsFresh(null,now),false);});
+test('invitation parser accepts only random 256-bit hex tokens',()=>{const t='a'.repeat(64);assert.equal(parseInvite('#invite='+t),t);for(const hash of ['#invite=family123','#invite=<script>','#invite='+'a'.repeat(63),'#access_token=secret'])assert.equal(parseInvite(hash),null);});
+test('device fixes must contain finite coordinates and nonnegative accuracy',()=>{assert.equal(validPosition({latitude:6.5,longitude:3.3,accuracy:12}),true);for(const c of [{latitude:NaN,longitude:0,accuracy:1},{latitude:91,longitude:0,accuracy:1},{latitude:0,longitude:181,accuracy:1},{latitude:0,longitude:0,accuracy:-1},{latitude:0,longitude:0,accuracy:Infinity}])assert.equal(validPosition(c),false);});
