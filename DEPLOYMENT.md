@@ -34,3 +34,9 @@ Use disposable test accounts, not real family coordinates.
 - Set up production monitoring, backups appropriate to the chosen Supabase plan, and test restoring a nonproduction copy.
 - Perform load tests for the expected number of families. This version polls family snapshots every ten seconds; plan capacity accordingly.
 - For reliable closed-app notifications, integrate and verify web/mobile push. For dependable background location, ship native Android/iOS apps with platform permission flows.
+
+## Chat and Android release additions
+
+The connected project has `db/chat.sql` applied. Run `db/chat-security-test.sql` in a rollback-only session for chat authorization tests. Message reports are in `public.chat_reports`; review them as an authorized operator and document follow-up before public launch. There is no automated report monitoring or push messaging yet.
+
+The Android app requests foreground coarse/fine location only. Do not declare background tracking in the Play listing. See `docs/ANDROID-AND-LAUNCH.md` for the store, moderation and release plan. Auth compromised-password protection is currently disabled according to the latest advisor and should be enabled where supported.

@@ -7,6 +7,8 @@ export function authErrorMessage(error) {
   return error?.message || 'Something went wrong. Please try again.';
 }
 export function validationMessage(input) {
+  if(input.name==='chat_terms'&&!input.checked)return 'Please agree to the chat rules before sending a message.';
+  if(input.name==='body'&&input.validity?.valueMissing)return 'Type a message first.';
   if(input.name==='terms'&&!input.checked)return 'Please accept the terms to create your account.';
   if(input.validity?.tooShort)return `Please use at least ${input.minLength} characters for ${input.name==='password'?'your password':'this field'}.`;
   if(input.validity?.typeMismatch)return 'Please enter a valid email address.';
