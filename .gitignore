@@ -30,3 +30,8 @@ android/app/src/main/assets/capacitor.config.json
 android/app/src/main/assets/capacitor.plugins.json
 *.jks
 *.keystore
+
+*.p12
+*.pfx
+release-signing.properties
+android/.kotlin/

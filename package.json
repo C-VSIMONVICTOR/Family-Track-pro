@@ -1,6 +1,6 @@
 {
   "name": "familytrack-pro",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "test:api": "node tests/api-smoke.js",
     "android:sync": "npm run build && cap sync android",
     "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease bundleRelease"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

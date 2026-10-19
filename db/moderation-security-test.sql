@@ -1,0 +1,16 @@
+begin;
+insert into auth.users(id,email) values('31000000-0000-4000-8000-000000000001','mod-author@familytrack.test'),('31000000-0000-4000-8000-000000000002','mod-reporter@familytrack.test'),('31000000-0000-4000-8000-000000000003','mod-operator@familytrack.test');
+insert into private.service_operators(user_id) values('31000000-0000-4000-8000-000000000003');
+insert into public.families(id,name,owner_id) values('31000000-0000-4000-8000-000000000004','Moderation test','31000000-0000-4000-8000-000000000001');
+insert into public.memberships(family_id,user_id,display_name) values('31000000-0000-4000-8000-000000000004','31000000-0000-4000-8000-000000000001','Author'),('31000000-0000-4000-8000-000000000004','31000000-0000-4000-8000-000000000002','Reporter');
+insert into public.chat_messages(id,family_id,sender_id,body) values('31000000-0000-4000-8000-000000000005','31000000-0000-4000-8000-000000000004','31000000-0000-4000-8000-000000000001','Reported test message');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
+do $$declare report_id uuid;begin insert into public.chat_reports(family_id,reporter_id,message_id,reason) values('31000000-0000-4000-8000-000000000004','31000000-0000-4000-8000-000000000002','31000000-0000-4000-8000-000000000005','harassment') returning id into report_id;perform set_config('test.report',report_id::text,true);end$$;
+do $$begin if (select message_body from public.chat_reports where id=current_setting('test.report')::uuid)<>'Reported test message' then raise exception 'Report evidence missing';end if;end$$;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000003',true);
+select public.service_command('review_report',jsonb_build_object('id',current_setting('test.report'),'decision','remove'));
+reset role;
+do $$begin if exists(select 1 from public.chat_messages where id='31000000-0000-4000-8000-000000000005') then raise exception 'Reported message remains';end if;if not exists(select 1 from public.chat_reports where id=current_setting('test.report')::uuid and status='removed' and message_body='Reported test message') then raise exception 'Review evidence lost';end if;end$$;
+rollback;
+select 'PASS: report evidence and operator removal' as result;
