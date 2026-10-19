@@ -21,8 +21,17 @@ function fail(error){toast(error?.message||'Something went wrong. Please try aga
 function modal(content,bind=()=>{}){const m=$('#modal');m.innerHTML=content;m.showModal();bind(m);m.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>m.close());}
 function closeMap(){if(state.map){state.map.remove();state.map=null;state.layers=null;}}
 async function command(action,payload={}){const {data,error}=await db.rpc('family_command',{action,payload:{family_id:state.family?.id,...payload}});if(error)throw error;return data;}
+function installPasswordToggles(form){
+ form.querySelectorAll('input[type="password"]').forEach((input,index)=>{
+  if(input.dataset.toggleReady)return;input.dataset.toggleReady='true';
+  input.id ||= form.id+'-password-'+index;
+  const label=input.closest('label'),wrap=document.createElement('div');wrap.className='password-control';label.before(wrap);wrap.append(label);
+  const button=document.createElement('button');button.type='button';button.className='password-toggle';button.textContent='Show';button.setAttribute('aria-label','Show password');button.setAttribute('aria-controls',input.id);button.setAttribute('aria-pressed','false');
+  button.onclick=()=>{const visible=input.type==='password';input.type=visible?'text':'password';button.textContent=visible?'Hide':'Show';button.setAttribute('aria-label',visible?'Hide password':'Show password');button.setAttribute('aria-pressed',String(visible));};wrap.append(button);
+ });
+}
 function bindForm(selector,handler){
- const form=$(selector);if(!form)return;
+ const form=$(selector);if(!form)return;installPasswordToggles(form);
  const err=form.querySelector('.error');
  form.addEventListener('invalid',ev=>{const details=ev.target.closest('details');if(details)details.open=true;if(err)err.textContent=validationMessage(ev.target);},true);
  form.onsubmit=async ev=>{
